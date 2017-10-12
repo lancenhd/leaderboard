@@ -1,17 +1,9 @@
-console.log("Hello world");
-
 PlayersList = new Mongo.Collection('players');
-
-var playersList = ['David', 'Bob', 'Mary', 'Bill', 'Warren', 'Tim'];
-playersList.forEach(function(){
-  console.log('test');
-});
 
 if(Meteor.isClient){
   Template.leaderboard.helpers({
     'player': function(){
-      return PlayersList.find({}, { sort: {score: -1} });
-
+      return PlayersList.find({}, { sort: {score: -1, name: 1} });
     },
     'selectedClass': function(){
       var playerId = this._id;
@@ -25,7 +17,6 @@ if(Meteor.isClient){
       return PlayersList.findOne({ _id: selectedPlayer });
     }
   });
-
   Template.leaderboard.events({
     'click .player': function(){
       var playerId = this._id;
@@ -33,19 +24,32 @@ if(Meteor.isClient){
     },
     'click .increment': function(){
       var selectedPlayer = Session.get('selectedPlayer');
-      PlayersList.update({ _id: selectedPlayer }, {$inc: {score: 5} });
+      PlayersList.update({ _id: selectedPlayer }, { $inc: {score: 5} });
     },
     'click .decrement': function(){
       var selectedPlayer = Session.get('selectedPlayer');
       PlayersList.update({ _id: selectedPlayer }, {$inc: {score: -5} });
+    },
+    'click .remove': function(){
+      var selectedPlayer = Session.get('selectedPlayer');
+      PlayersList.remove({ _id: selectedPlayer });
     }
+  });
+  Template.addPlayerForm.events({
+    'submit form': function(event){
+      event.preventDefault();
+      var playerNameVar = event.target.playerName.value;
+      PlayersList.insert({
+        name: playerNameVar,
+        score:0
+      });
+      event.target.playerName.value = "";
+    }
+
+
   });
 }
 
-
-
-
 if(Meteor.isServer){
   // this code only runs on the server
-
 }
